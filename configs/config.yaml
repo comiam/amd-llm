@@ -1,0 +1,24 @@
+paths:
+  base_dir: "/home/maxim/Apps/amd-llm"
+  models_dir: "${base_dir}/models"
+  logs_dir:   "${base_dir}/logs"
+
+model:
+  name:      "Qwen2.5-32B"
+  repo_id:   "Qwen/Qwen2.5-32B"
+  precision: "int4"
+
+alveo:
+  device_id: 0
+  xclbin: "/opt/xilinx/overlaybins/DPUCADF8H/*/dpu.xclbin"
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+
+inference:
+  temperature: 0.7
+  top_p: 0.9
+  top_k: 40
+  repetition_penalty: 1.1
+  max_tokens: 1024
