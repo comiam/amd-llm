@@ -6,10 +6,12 @@ from typing import Any, Literal
 import yaml
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
+
 def load_config(config_path) -> Any:
     """Загрузка конфигурационного файла."""
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         return yaml.safe_load(f)
+
 
 def download_model(model_name, output_dir) -> Literal[True]:
     """Загрузка модели с использованием transformers."""
@@ -18,11 +20,14 @@ def download_model(model_name, output_dir) -> Literal[True]:
     tokenizer.save_pretrained(output_dir)
 
     print(f"Загрузка модели {model_name}...")
-    model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", trust_remote_code=True)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name, device_map="auto", trust_remote_code=True
+    )
     model.save_pretrained(output_dir)
 
     print(f"Модель сохранена в {output_dir}")
     return True
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download Transformer model")

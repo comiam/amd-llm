@@ -1,5 +1,5 @@
 paths:
-  base_dir: "/home/maxim/Apps/amd-llm"
+  base_dir: "/home/comiam/Apps/amd-llm"
   models_dir: "${base_dir}/models"
   logs_dir:   "${base_dir}/logs"
 

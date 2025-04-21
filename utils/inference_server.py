@@ -14,8 +14,11 @@ from pydantic import BaseModel
 from transformers import AutoTokenizer
 
 # -- Логирование --------------------------------------------------------------
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s"
+)
 log = logging.getLogger("server")
+
 
 # -- Pydantic модели ----------------------------------------------------------
 class GenerationRequest(BaseModel):
@@ -27,11 +30,13 @@ class GenerationRequest(BaseModel):
     repetition_penalty: Optional[float] = None
     stop: Optional[List[str]] = None
 
+
 class GenerationResponse(BaseModel):
     text: str
     usage: Dict[str, int]
     finish_reason: str
     duration_ms: float
+
 
 # -- Sampling helper ----------------------------------------------------------
 def sample_token(
@@ -40,7 +45,7 @@ def sample_token(
     top_p: float,
     top_k: int,
     repetition_penalty: float,
-    hist_ids: torch.Tensor
+    hist_ids: torch.Tensor,
 ) -> int:
     """Вернёт id следующего токена."""
     logits = logits / temperature
@@ -61,6 +66,7 @@ def sample_token(
     probs = F.softmax(logits, dim=-1)
     return torch.multinomial(probs, num_samples=1).item()
 
+
 # -- Движок инференса ---------------------------------------------------------
 class AlveoEngine:
     def __init__(self, cfg: Dict) -> None:
@@ -80,42 +86,55 @@ class AlveoEngine:
         p = lambda k: getattr(req, k) or self.defaults[k]
 
         T, TP, TK = p("temperature"), p("top_p"), p("top_k")
-        MAX, RP  = p("max_tokens"), p("repetition_penalty")
+        MAX, RP = p("max_tokens"), p("repetition_penalty")
 
-        in_ids = torch.tensor([self.tokenizer.encode(req.prompt, add_special_tokens=False)])
+        in_ids = torch.tensor(
+            [self.tokenizer.encode(req.prompt, add_special_tokens=False)]
+        )
         gen_ids = in_ids.clone()
 
         for _ in range(MAX):
             attn = torch.ones_like(gen_ids)
-            self.mod.set_input("input_ids", tvm.nd.array(gen_ids.numpy().astype("int64")))
-            self.mod.set_input("attention_mask", tvm.nd.array(attn.numpy().astype("int64")))
+            self.mod.set_input(
+                "input_ids", tvm.nd.array(gen_ids.numpy().astype("int64"))
+            )
+            self.mod.set_input(
+                "attention_mask", tvm.nd.array(attn.numpy().astype("int64"))
+            )
             self.mod.run()
             logits = torch.from_numpy(self.mod.get_output(0).numpy())
 
             nid = sample_token(logits[:, -1, :], T, TP, TK, RP, gen_ids[0])
             gen_ids = torch.cat([gen_ids, torch.tensor([[nid]])], dim=1)
 
-            if nid == self.tokenizer.eos_token_id: break
-            if req.stop and any(s in self.tokenizer.decode(gen_ids[0], skip_special_tokens=True)
-                                for s in req.stop):
+            if nid == self.tokenizer.eos_token_id:
+                break
+            if req.stop and any(
+                s in self.tokenizer.decode(gen_ids[0], skip_special_tokens=True)
+                for s in req.stop
+            ):
                 break
 
-        out_txt = self.tokenizer.decode(gen_ids[0][len(in_ids[0]):], skip_special_tokens=True)
+        out_txt = self.tokenizer.decode(
+            gen_ids[0][len(in_ids[0]) :], skip_special_tokens=True
+        )
         dur = (time.time() - t0) * 1000
         return GenerationResponse(
             text=out_txt,
             usage={
                 "prompt_tokens": len(in_ids[0]),
                 "completion_tokens": len(gen_ids[0]) - len(in_ids[0]),
-                "total_tokens": len(gen_ids[0])
+                "total_tokens": len(gen_ids[0]),
             },
             finish_reason="stop" if nid == self.tokenizer.eos_token_id else "length",
-            duration_ms=dur
+            duration_ms=dur,
         )
+
 
 # -- FastAPI обёртка -----------------------------------------------------------
 def load_cfg(pth) -> Any:
     return yaml.safe_load(open(pth, "r"))
+
 
 def create_app(cfg_path: str) -> Any:
     cfg = load_cfg(cfg_path)
@@ -130,12 +149,14 @@ def create_app(cfg_path: str) -> Any:
 
     @app.post("/v1/generate", response_model=GenerationResponse)
     def gen(r: GenerationRequest) -> GenerationResponse:
-        try: return eng.generate(r)
+        try:
+            return eng.generate(r)
         except Exception as e:
             log.exception("generate failed")
             raise HTTPException(status_code=500, detail=str(e))
 
     return app
+
 
 if __name__ == "__main__":
     arg = argparse.ArgumentParser()
@@ -144,4 +165,7 @@ if __name__ == "__main__":
     c = load_cfg(a.config)
 
     import uvicorn
-    uvicorn.run(create_app(a.config), host=c["server"]["host"], port=c["server"]["port"])
+
+    uvicorn.run(
+        create_app(a.config), host=c["server"]["host"], port=c["server"]["port"]
+    )

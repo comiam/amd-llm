@@ -7,18 +7,21 @@
 #
 
 set -euo pipefail
-BASE="$HOME/Apps/amd-llm";  mkdir -p "$BASE"
+BASE="$HOME/Apps/amd-llm"
+mkdir -p "$BASE"
 
 sudo apt update && sudo apt -y upgrade
-sudo apt install -y build-essential git wget jq yq cmake dkms pciutils \
-                     python3-venv python3-pip
+sudo apt install -y build-essential git wget jq cmake dkms pciutils \
+    python3-venv python3-pip
+sudo snap install yq
 
 # Python venv
-python3 -m venv "$BASE/venv"
+pip install --upgrade pip
+python3.11 -m venv "$BASE/venv"
 source "$BASE/venv/bin/activate"
 pip install -U pip wheel
-pip install torch==2.1.2 transformers==4.41.1 tvm==0.16.0 \
-            fastapi uvicorn pydantic pyyaml requests tqdm \
-            onnx onnxruntime
+pip install torch==2.6.0 transformers==4.51.3 apache-tvm==0.14.dev273 \
+    fastapi uvicorn pydantic pyyaml requests tqdm \
+    onnx onnxruntime
 
 echo -e "\e[32m[01] System packages & venv installed.\e[0m"

@@ -16,8 +16,10 @@ run = lambda cmd: subprocess.check_call(cmd, shell=True)
 
 ARCH = "/opt/vitis_ai/compiler/arch/DPUCADF8H/U250/arch.json"
 
+
 def export_ts(src_dir, out_ts):
-    run(f"python - <<'PY'\n"
+    run(
+        f"python - <<'PY'\n"
         f"from transformers import AutoModelForCausalLM, AutoTokenizer\n"
         f"import torch\n"
         f"tok = AutoTokenizer.from_pretrained('{src_dir}')\n"
@@ -25,18 +27,26 @@ def export_ts(src_dir, out_ts):
         f"t = tok.encode('Hello', return_tensors='pt')\n"
         f"ts = torch.jit.trace(mdl, t)\n"
         f"ts.save('{out_ts}')\n"
-        f"PY")
+        f"PY"
+    )
     return out_ts
 
+
 def quantize(ts, prec):
-    run(f"vai_q_pytorch quantize --model {ts} --input_fn dummy_input "
-        f"--output_dir quant --quant_mode {prec} --target DPUCADF8H")
+    run(
+        f"vai_q_pytorch quantize --model {ts} --input_fn dummy_input "
+        f"--output_dir quant --quant_mode {prec} --target DPUCADF8H"
+    )
     return "quant/model_int.xmodel"
 
+
 def compile_xmodel(xmodel):
-    run(f"vai_c_xir -x {xmodel} -a {ARCH} -o compile -n llama_u250 "
-        f"-e '{{\"mode\":\"normal\",\"batchsize\":1}}'")
+    run(
+        f"vai_c_xir -x {xmodel} -a {ARCH} -o compile -n llama_u250 "
+        f'-e \'{{"mode":"normal","batchsize":1}}\''
+    )
     return "compile/llama_u250.xmodel"
+
 
 def tvm_pack(xmodel):
     mod, params = relay.frontend.from_xmodel(xmodel)
@@ -47,6 +57,7 @@ def tvm_pack(xmodel):
     lib.export_library("alveo/model_alveo.so")
     with open("alveo/model_alveo.params", "wb") as f:
         f.write(relay.save_param_dict(lib.get_params()))
+
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
