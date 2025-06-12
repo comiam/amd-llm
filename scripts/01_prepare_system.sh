@@ -7,13 +7,15 @@
 #
 
 set -euo pipefail
-BASE="$HOME/Apps/amd-llm"
-mkdir -p "$BASE"
+CFG="configs/config.yaml"
 
 sudo apt update && sudo apt -y upgrade
 sudo apt install -y build-essential git wget jq cmake dkms pciutils \
     python3-venv python3-pip
 sudo snap install yq
+
+BASE="$(yq '.paths.base_dir' "$CFG")"
+mkdir -p "$BASE"
 
 # Python venv
 pip install --upgrade pip
