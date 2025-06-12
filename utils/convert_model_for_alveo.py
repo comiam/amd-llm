@@ -9,10 +9,17 @@ TVM runtime bundle.
   https://docs.xilinx.com/r/2.5-English/ug1414-vitis-ai
 """
 
-import argparse, os, subprocess, tvm
+import argparse
+import os
+import subprocess
+import tvm
 from tvm import relay
 
-run = lambda cmd: subprocess.check_call(cmd, shell=True)
+
+def run(cmd):
+    """Execute a shell command."""
+    subprocess.check_call(cmd, shell=True)
+
 
 ARCH = "/opt/vitis_ai/compiler/arch/DPUCADF8H/U250/arch.json"
 
@@ -23,7 +30,8 @@ def export_ts(src_dir, out_ts):
         f"from transformers import AutoModelForCausalLM, AutoTokenizer\n"
         f"import torch\n"
         f"tok = AutoTokenizer.from_pretrained('{src_dir}')\n"
-        f"mdl = AutoModelForCausalLM.from_pretrained('{src_dir}', torchscript=True)\n"
+        f"mdl = AutoModelForCausalLM.from_pretrained('{src_dir}', "
+        f"torchscript=True)\n"
         f"t = tok.encode('Hello', return_tensors='pt')\n"
         f"ts = torch.jit.trace(mdl, t)\n"
         f"ts.save('{out_ts}')\n"
