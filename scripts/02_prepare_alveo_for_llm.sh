@@ -42,7 +42,8 @@ download_files() {
 
   local dl_ok=
   for f in "${files[@]}"; do
-    local url="$(get_xilinx_url "$f")"
+    local url
+    url="$(get_xilinx_url "$f")"
     echo "  ↳ wget -q --show-progress $f"
     if wget -q --show-progress -O "$tmp_dir/$f" "$url"; then
       dl_ok=1
@@ -186,7 +187,7 @@ flash_partitions() {
 install_vitis_ai_runtime() {
   local vai_home="$1"
   local overlay_ip="$2"
-  if ! ls /opt/xilinx/overlaybins/$overlay_ip/*/dpu.xclbin &>/dev/null; then
+  if ! ls /opt/xilinx/overlaybins/"$overlay_ip"/*/dpu.xclbin &>/dev/null; then
     echo "Vitis‑AI not found, attempting to install from repository..."
 
     if [[ ! -d "$vai_home" ]]; then
@@ -296,7 +297,7 @@ main() {
   sudo apt autoremove -y
 
   # Проверка и валидация Overlay‑xclbin
-  if ! ls /opt/xilinx/overlaybins/$OVERLAY_IP/*/dpu.xclbin &>/dev/null; then
+  if ! ls /opt/xilinx/overlaybins/"$OVERLAY_IP"/*/dpu.xclbin &>/dev/null; then
     echo -e "\e[31m[ERR] Overlay $OVERLAY_IP not found after deploy.\e[0m"
     exit 1
   fi
