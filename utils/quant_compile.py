@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""Quantize and compile model inside a Vitis-AI Docker container."""
+"""Run quantization and compilation inside ``xilinx/vitis-ai`` Docker.
+
+This script expects a TorchScript model and calibration dataset prepared on the
+host.  It calls ``vai_q_pytorch`` to produce an INT8 XIR model and then
+``vai_c_xir`` to compile for the DPUCADF8H target.  Finally the XIR model is
+wrapped as a TVM runtime bundle.
+
+References:
+    - Vitis-AI quantization: https://docs.xilinx.com/r/2.5-English/ug1414-vitis-ai
+    - TVM ``from_xmodel``: https://tvm.apache.org/docs/v0.12.0/reference/api/python/relay/frontend.html
+"""
 import argparse
 import subprocess
 from pathlib import Path

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# STEP‑2 -  download -> quantize -> compile -> TVM bundle
+# STEP‑2 -  download model, then run host+Docker conversion -> TVM bundle
 #
 
 set -euo pipefail

@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""
-HF -> TorchScript -> quantize 8‑bit (vai_q_pytorch) -> compile (vai_c_xir) ->
-TVM runtime bundle.
+"""Convert HuggingFace model to XIR/TVM for AMD Alveo U250.
+
+1. On the host we export a TorchScript graph and gather a small calibration
+   dataset (CodeSearchNet).  You can set ``HF_TOKEN`` to access private splits.
+2. Quantization and compilation run inside ``xilinx/vitis-ai`` Docker via
+   ``quant_compile.py``.
+3. Resulting ``.xmodel`` is also packed as a TVM bundle.
 
 • TorchScript export:
   https://pytorch.org/tutorials/advanced/cpp_export.html
-• Quantizer doc:
+• Vitis-AI quantization doc:
   https://docs.xilinx.com/r/2.5-English/ug1414-vitis-ai
 """
 
