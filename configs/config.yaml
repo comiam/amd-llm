@@ -6,7 +6,7 @@ paths:
 model:
   name:      "Qwen2.5-32B"
   repo_id:   "Qwen/Qwen2.5-32B"
-  precision: "int4"
+  precision: "int8"
 
 alveo:
   device_id: 0
