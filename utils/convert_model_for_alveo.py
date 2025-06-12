@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Convert a downloaded HF model for Alveo U250.
+"""
+HF -> TorchScript -> quantize 8‑bit (vai_q_pytorch) -> compile (vai_c_xir) ->
+TVM runtime bundle.
 
-This script performs the host-side steps (TorchScript export and calibration
-dataset preparation) and then launches a Vitis-AI Docker container to run the
-quantization/compile pipeline.  The container uses ``utils/quant_compile.py``
-to produce the final ``xmodel`` and TVM bundle.
+• TorchScript export:
+  https://pytorch.org/tutorials/advanced/cpp_export.html
+• Quantizer doc:
+  https://docs.xilinx.com/r/2.5-English/ug1414-vitis-ai
 """
 
 import argparse

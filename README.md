@@ -99,7 +99,7 @@ REST API
 | `scripts/03_prepare_qwen_model.sh` | вызывает Python‑утилиты download / convert / pack |
 | `scripts/04_run_inference_server.sh` | стартует FastAPI под Uvicorn |
 | `utils/download_model.py` | скачивает модель + токенизатор из HF |
-| `utils/convert_model_for_alveo.py` | host‑export + docker‑квант/compile |
+| `utils/convert_model_for_alveo.py` | полный PTQ + компиляция + TVM‑упаковка |
 | `utils/inference_server.py` | сервер; sampling портирован из MLPerf 2.1 `sampling.cpp` |
 | `test_api.py` | CLI‑клиент для проверки REST |
 
