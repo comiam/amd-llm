@@ -38,9 +38,9 @@ def test_generate(url, prompt, max_tokens=None, temperature=None):
     
     if response.status_code == 200:
         result = response.json()
-        print(f"\nСгенерированный текст:")
+        print("\nСгенерированный текст:")
         print(f"{result['text']}")
-        print(f"\nСтатистика:")
+        print("\nСтатистика:")
         print(f"Токены промпта: {result['usage']['prompt_tokens']}")
         print(f"Токены ответа: {result['usage']['completion_tokens']}")
         print(f"Всего токенов: {result['usage']['total_tokens']}")
@@ -57,7 +57,7 @@ def test_status(url):
         response = requests.get(url)
         print(f"Статус ответа: {response.status_code}")
         if response.status_code == 200:
-            print(f"Информация о сервере:")
+            print("Информация о сервере:")
             print(json.dumps(response.json(), indent=2, ensure_ascii=False))
         else:
             print(f"Ошибка: {response.text}")
