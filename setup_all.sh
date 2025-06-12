@@ -11,14 +11,14 @@ mkdir -p logs
 exec > >(tee -a "$LOG") 2>&1
 
 overlay_ready() { ls /opt/xilinx/overlaybins/DPUCADF8H/*/dpu.xclbin &>/dev/null; }
-venv_ready() { [[ -d "$BASE/venv" ]]; }
+conda_env_ready() { [[ -d "$BASE/env" ]]; }
 model_ready() { [[ -f "$(yq '.paths.models_dir' $CFG)/$(yq '.model.name' $CFG)/alveo/model_alveo.so" ]]; }
 server_running() { pgrep -f "uvicorn.*inference_server" &>/dev/null; }
 
 echo -e "\n=== AMD Alveo U250 LLM bootstrap ==="
 
 # STEP‑0
-if ! venv_ready; then
+if ! conda_env_ready; then
   ./scripts/01_prepare_system.sh
   echo "Reboot required, then rerun setup_all.sh"
   exit

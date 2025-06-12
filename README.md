@@ -54,14 +54,11 @@ python test_api.py --prompt "Расскажи про FPGA Alveo U250" \
 ```
 HuggingFace model
         │
-        ▼  (TorchScript export)
-model.ts
+        ▼  host: TorchScript + calib
+torchscript/model.ts
         │
-        ▼  vai_q_pytorch   – INT8 PTQ
-model_int.xmodel
-        │
-        ▼  vai_c_xir       – компиляция под DPUCADF8H
-llama_u250.xmodel
+        ▼  docker: vai_q_pytorch → vai_c_xir
+compile/qwen_u250.xmodel
         │
         ▼  TVM Relay -> LLVM (vitis‑ai backend)
 model_alveo.{so,params}
@@ -71,6 +68,11 @@ REST API
 ```
 
 *TVM граф выполняет **один шаг**; autoregressive‑петля и sampling крутятся на CPU.*
+
+Калибровочные данные скачиваются из `code_search_net` (split `train[:0.1%]`).
+Если загрузка требует авторизации, задайте переменную `HF_TOKEN`.  Конвертация
+выполняет `vai_q_pytorch` и `vai_c_xir` внутри Docker‑образа `xilinx/vitis-ai`.
+См. также [UG1414 Vitis-AI](https://docs.xilinx.com/r/2.5-English/ug1414-vitis-ai).
 
 ---
 
@@ -99,7 +101,7 @@ REST API
 | `scripts/03_prepare_qwen_model.sh` | вызывает Python‑утилиты download / convert / pack |
 | `scripts/04_run_inference_server.sh` | стартует FastAPI под Uvicorn |
 | `utils/download_model.py` | скачивает модель + токенизатор из HF |
-| `utils/convert_model_for_alveo.py` | полный PTQ + компиляция + TVM‑упаковка |
+| `utils/convert_model_for_alveo.py` | экспорт TorchScript + калибровка → PTQ и компиляция внутри Docker → TVM‑упаковка |
 | `utils/inference_server.py` | сервер; sampling портирован из MLPerf 2.1 `sampling.cpp` |
 | `test_api.py` | CLI‑клиент для проверки REST |
 

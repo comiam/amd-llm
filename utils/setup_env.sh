@@ -4,7 +4,8 @@
 source /opt/xilinx/xrt/setup.sh
 CFG="configs/config.yaml"
 BASE="$(yq '.paths.base_dir' "$CFG")"
-source "$BASE/venv/bin/activate"
+source "$BASE/miniconda/etc/profile.d/conda.sh"
+conda activate "$BASE/env"
 
 VAI_HOME="$BASE/Vitis-AI-2.5"
 export PYTHONPATH="$VAI_HOME/tools/Vitis-AI-Library/python:$PYTHONPATH"
