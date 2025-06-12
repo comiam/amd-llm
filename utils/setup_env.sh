@@ -2,7 +2,8 @@
 # Environment activator for Alveo U250  +  Vitis‑AI 2.5
 
 source /opt/xilinx/xrt/setup.sh
-BASE="$HOME/Apps/amd-llm"
+CFG="configs/config.yaml"
+BASE="$(yq '.paths.base_dir' "$CFG")"
 source "$BASE/venv/bin/activate"
 
 VAI_HOME="$BASE/Vitis-AI-2.5"
