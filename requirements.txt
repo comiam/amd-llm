@@ -1,0 +1,25 @@
+# Core dependencies
+torch==2.6.0
+transformers==4.51.3
+fastapi>=0.103.0
+uvicorn>=0.23.0
+pydantic>=2.4.0
+pyyaml>=6.0.0
+requests>=2.31.0
+tqdm>=4.66.0
+
+# For model conversion
+onnx>=1.14.0
+onnxruntime>=1.16.0
+
+# For data processing
+numpy>=1.24.0
+datasets>=2.14.0
+
+# Utilities
+argparse>=1.4.0
+pathlib>=1.0.1
+typing-extensions>=4.7.0
+psutil==7.0.0
+xgboost>=3.0.2
+cloudpickle==3.1.1
