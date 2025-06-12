@@ -30,13 +30,23 @@ def download_model(model_name, output_dir) -> Literal[True]:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Download Transformer model")
-    parser.add_argument("--config", type=str, required=True, help="Path to config.yaml")
+    parser = argparse.ArgumentParser(
+        description="Download Transformer model"
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        required=True,
+        help="Path to config.yaml",
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)
     model_name = config["model"]["repo_id"]
-    model_dir = os.path.join(config["paths"]["models_dir"], config["model"]["name"])
+    model_dir = os.path.join(
+        config["paths"]["models_dir"],
+        config["model"]["name"],
+    )
 
     os.makedirs(model_dir, exist_ok=True)
     download_model(model_name, model_dir)

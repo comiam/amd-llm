@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 # FastAPI‑сервер для Alveo U250 LLM
 
-import os, time, yaml, argparse, logging
+import argparse
+import logging
+import os
+import time
+import yaml
 from typing import Any, Dict, List, Optional
 
 import torch
@@ -70,23 +74,35 @@ def sample_token(
 # -- Движок инференса ---------------------------------------------------------
 class AlveoEngine:
     def __init__(self, cfg: Dict) -> None:
-        mdl_dir = os.path.join(cfg["paths"]["models_dir"], cfg["model"]["name"])
+        mdl_dir = os.path.join(
+            cfg["paths"]["models_dir"],
+            cfg["model"]["name"],
+        )
         self.tokenizer = AutoTokenizer.from_pretrained(mdl_dir)
 
-        lib = tvm.runtime.load_module(os.path.join(mdl_dir, "alveo/model_alveo.so"))
-        self.mod = graph_executor.GraphModule(lib["default"](tvm.device("opencl", 0)))
-        with open(os.path.join(mdl_dir, "alveo/model_alveo.params"), "rb") as f:
-            self.mod.load_params(tvm.runtime.load_param_dict(f.read()))
+        lib = tvm.runtime.load_module(
+            os.path.join(mdl_dir, "alveo/model_alveo.so")
+        )
+        self.mod = graph_executor.GraphModule(
+            lib["default"](tvm.device("opencl", 0))
+        )
+        params_path = os.path.join(mdl_dir, "alveo/model_alveo.params")
+        with open(params_path, "rb") as f:
+            self.mod.load_params(
+                tvm.runtime.load_param_dict(f.read())
+            )
 
         self.defaults = cfg["inference"]
 
     # ---------------------------------------------------------------------
     def generate(self, req: GenerationRequest) -> GenerationResponse:
         t0 = time.time()
-        p = lambda k: getattr(req, k) or self.defaults[k]
 
-        T, TP, TK = p("temperature"), p("top_p"), p("top_k")
-        MAX, RP = p("max_tokens"), p("repetition_penalty")
+        def param(key):
+            return getattr(req, key) or self.defaults[key]
+
+        T, TP, TK = param("temperature"), param("top_p"), param("top_k")
+        MAX, RP = param("max_tokens"), param("repetition_penalty")
 
         in_ids = torch.tensor(
             [self.tokenizer.encode(req.prompt, add_special_tokens=False)]
@@ -110,13 +126,15 @@ class AlveoEngine:
             if nid == self.tokenizer.eos_token_id:
                 break
             if req.stop and any(
-                s in self.tokenizer.decode(gen_ids[0], skip_special_tokens=True)
+                s in self.tokenizer.decode(
+                    gen_ids[0], skip_special_tokens=True
+                )
                 for s in req.stop
             ):
                 break
 
         out_txt = self.tokenizer.decode(
-            gen_ids[0][len(in_ids[0]) :], skip_special_tokens=True
+            gen_ids[0][len(in_ids[0]):], skip_special_tokens=True
         )
         dur = (time.time() - t0) * 1000
         return GenerationResponse(
@@ -126,12 +144,14 @@ class AlveoEngine:
                 "completion_tokens": len(gen_ids[0]) - len(in_ids[0]),
                 "total_tokens": len(gen_ids[0]),
             },
-            finish_reason="stop" if nid == self.tokenizer.eos_token_id else "length",
+            finish_reason=(
+                "stop" if nid == self.tokenizer.eos_token_id else "length"
+            ),
             duration_ms=dur,
         )
 
 
-# -- FastAPI обёртка -----------------------------------------------------------
+# -- FastAPI обёртка -------------------------------
 def load_cfg(pth) -> Any:
     return yaml.safe_load(open(pth, "r"))
 
@@ -141,11 +161,18 @@ def create_app(cfg_path: str) -> Any:
     eng = AlveoEngine(cfg)
 
     app = FastAPI()
-    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"])
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+    )
 
     @app.get("/")
     def status() -> Dict[str, Any]:
-        return {"model": cfg["model"]["name"], "precision": cfg["model"]["precision"]}
+        return {
+            "model": cfg["model"]["name"],
+            "precision": cfg["model"]["precision"],
+        }
 
     @app.post("/v1/generate", response_model=GenerationResponse)
     def gen(r: GenerationRequest) -> GenerationResponse:
@@ -167,5 +194,7 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(
-        create_app(a.config), host=c["server"]["host"], port=c["server"]["port"]
+        create_app(a.config),
+        host=c["server"]["host"],
+        port=c["server"]["port"],
     )
